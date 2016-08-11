@@ -19,10 +19,10 @@ class PDFManage
      * @param $pages
      * @return void
      */
-    public function addPDF($filepath, $pages = 'all', $orientation = null)
+    public function addPDF( $filepath, $pages = 'all', $orientation = null )
     {
-        if (file_exists($filepath)) {
-            if (strtolower($pages) != 'all') {
+        if ( file_exists($filepath) ) {
+            if ( strtolower($pages) != 'all' ) {
                 $pages = $this->_rewritepages($pages);
             }
 
@@ -34,6 +34,15 @@ class PDFManage
         return $this;
     }
 
+
+    /**
+     * Clear pdf array
+     */
+    public function clearPDFS()
+    {
+        $this->_files = [];
+    }
+
     /**
      * Merges your provided PDFs and outputs to specified location.
      * @param $outputmode
@@ -41,9 +50,9 @@ class PDFManage
      * @param $orientation
      * @return PDF
      */
-    public function merge($outputmode = 'browser', $outputpath = 'newfile.pdf', $orientation = 'P')
+    public function merge( $outputmode = 'browser', $outputpath = 'newfile.pdf', $orientation = 'P' )
     {
-        if (!isset($this->_files) || !is_array($this->_files)) {
+        if ( !isset($this->_files) || !is_array($this->_files) ) {
             throw new Exception("No PDFs to merge.");
         }
 
@@ -52,25 +61,25 @@ class PDFManage
         $fpdi->setPrintFooter(false);
 
         // merger operations
-        foreach ($this->_files as $file) {
-            $filename  = $file[0];
+        foreach ( $this->_files as $file ) {
+            $filename = $file[0];
             $filepages = $file[1];
             $fileorientation = (!is_null($file[2])) ? $file[2] : $orientation;
 
             $count = $fpdi->setSourceFile($filename);
 
             //add the pages
-            if ($filepages == 'all') {
-                for ($i=1; $i<=$count; $i++) {
-                    $template   = $fpdi->importPage($i);
-                    $size       = $fpdi->getTemplateSize($template);
+            if ( $filepages == 'all' ) {
+                for ( $i = 1; $i <= $count; $i++ ) {
+                    $template = $fpdi->importPage($i);
+                    $size = $fpdi->getTemplateSize($template);
 
                     $fpdi->AddPage($fileorientation, array($size['w'], $size['h']));
                     $fpdi->useTemplate($template);
                 }
             } else {
-                foreach ($filepages as $page) {
-                    if (!$template = $fpdi->importPage($page)) {
+                foreach ( $filepages as $page ) {
+                    if ( !$template = $fpdi->importPage($page) ) {
                         throw new Exception("Could not load page '$page' in PDF '$filename'. Check that the page exists.");
                     }
                     $size = $fpdi->getTemplateSize($template);
@@ -84,13 +93,14 @@ class PDFManage
         //output operations
         $mode = $this->_switchmode($outputmode);
 
-        if ($mode == 'S') {
+        if ( $mode == 'S' ) {
             return $fpdi->Output($outputpath, 'S');
         } else {
-            if ($fpdi->Output($outputpath, $mode) == '') {
+            if ( $fpdi->Output($outputpath, $mode) == '' ) {
                 return true;
             } else {
                 throw new Exception("Error outputting PDF to '$outputmode'.");
+
                 return false;
             }
         }
@@ -103,10 +113,9 @@ class PDFManage
      * @param $mode
      * @return Character
      */
-    private function _switchmode($mode)
+    private function _switchmode( $mode )
     {
-        switch(strtolower($mode))
-        {
+        switch ( strtolower($mode) ) {
             case 'download':
                 return 'D';
                 break;
@@ -130,37 +139,37 @@ class PDFManage
      * @param $pages
      * @return unknown_type
      */
-    private function _rewritepages($pages)
+    private function _rewritepages( $pages )
     {
         $pages = str_replace(' ', '', $pages);
         $part = explode(',', $pages);
 
         //parse hyphens
-        foreach ($part as $i) {
+        foreach ( $part as $i ) {
             $ind = explode('-', $i);
 
-            if (count($ind) == 2) {
+            if ( count($ind) == 2 ) {
                 $x = $ind[0]; //start page
                 $y = $ind[1]; //end page
 
-                if ($x > $y) {
+                if ( $x > $y ) {
                     throw new Exception("Starting page, '$x' is greater than ending page '$y'.");
+
                     return false;
                 }
 
                 //add middle pages
-                while ($x <= $y) {
-                    $newpages[] = (int) $x;
+                while ( $x <= $y ) {
+                    $newpages[] = (int)$x;
                     $x++;
                 }
             } else {
-                $newpages[] = (int) $ind[0];
+                $newpages[] = (int)$ind[0];
             }
         }
 
         return $newpages;
     }
-
 
 
 }
